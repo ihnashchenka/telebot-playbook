@@ -1,0 +1,9 @@
+---
+  - name: helloworld-playbook
+    hosts: all
+
+    tasks:
+      - name: Create helloworld.txt
+        copy:
+            content: Hello World!
+            dest: /home/osboxes/helloworld.txt
