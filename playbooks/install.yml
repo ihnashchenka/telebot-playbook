@@ -1,0 +1,38 @@
+---
+  - name: install telegram bot GuessMu 3.0
+    hosts: all
+    become: yes
+
+    tasks:
+      - name: Download git repo
+        git:
+            repo: https://github.com/ihnashchenka/TelegramBot.git
+            dest: /usr/bin/telebot
+          
+      - name: Install libpq-dev to build libs for postgres
+        apt:
+            name: libpq-dev
+            update_cache: yes 
+                
+      - name: Install pip
+        apt:
+            name: python3-pip
+            update_cache: yes
+            
+      - name: Install python packages from requirenment.txt
+        pip:
+            requirements: /usr/bin/telebot/requirements.txt
+            
+      - name: Install python packages from requirenment.txt
+        pip:
+            requirements: /usr/bin/telebot/requirements.txt
+            
+      - name: Create log files
+        file:
+            path: "{{ item }}"
+            state: touch
+        with_items:
+        - /tmp/telebot/output.log
+        - /tmp/telebot/error.log
+       
+    
