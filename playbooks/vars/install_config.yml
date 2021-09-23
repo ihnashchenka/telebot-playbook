@@ -1,0 +1,7 @@
+module_name: telebot
+install_dir: /usr/bin 
+service_dir: /lib/systemd/system
+log_path: /tmp
+stdout_filename: output.log
+stderr_filename: error.log
+python_dir: /usr/bin/python3

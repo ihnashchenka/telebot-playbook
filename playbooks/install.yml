@@ -1,72 +1,71 @@
 ---
-  - name: install telegram bot GuessMu 3.0
+  - name: Deploy telegram bot GuessMu 3.0.
     hosts: all
     become: yes
 
+    vars_files:
+      - vars/api_config.yml
+      - vars/install_config.yml
+      
     tasks:
-      - name: Download git repo
+      - name: Download git repository.
         git:
             repo: https://github.com/ihnashchenka/TelegramBot.git
-            dest: /usr/bin/telebot
+            dest: "{{ install_dir }}/{{ module_name }}"
             force: yes
             
-      - name: Set access bot sources
+        #todo: possibly include to git task 
+      - name: Change access mode for bot sources.  
         file:
-            path: /usr/bin/telebot
+            path:  "{{ install_dir }}/{{ module_name }}"
             state: directory
             mode: u=rwx,g=rx,o=rx
             recurse: yes
           
-      - name: Install libpq-dev to build libs for postgres
+      - name: Install libpq-dev to build libs for PostgreSQL.
         apt:
             name: libpq-dev
             update_cache: yes 
                 
-      - name: Install pip
+      - name: Install pip.
         apt:
             name: python3-pip
             update_cache: yes
             
-      - name: Install python packages from requirenment.txt
+      - name: Install python packages from requirenment.txt.
         pip:
-            requirements: /usr/bin/telebot/requirements.txt
-            
-      - name: Install python packages from requirenment.txt
-        pip:
-            requirements: /usr/bin/telebot/requirements.txt
-            
-      - name: Create log directory
+            requirements: "{{ install_dir }}/{{ module_name }}/requirements.txt"
+          
+      - name: Create log directory.
         file:
-            path: "/tmp/telebot"
+            path: "{{ log_path }}/{{ module_name }}"
             state: directory
             
-      - name: Create log files
+        #todo: do cleanup with archiving to ...log.1
+      - name: Create log files.
         file:
             path: "{{ item }}"
             state: touch
         with_items:
-        - /tmp/telebot/output.log
-        - /tmp/telebot/error.log
+        - "{{ log_path }}/{{ module_name }}/{{ stdout_filename }}"
+        - "{{ log_path }}/{{ module_name }}/{{ stderr_filename }}"
         
-      - name: Create telebot service file
+      - name: Create bot service file.
         copy:
-            dest: "/lib/systemd/system/telebot.service"
+            dest: "{{ service_dir }}/{{ module_name }}.service"
             content: |
                 [Service]
-                ExecStart=/usr/bin/python3 /usr/bin/telebot/bot.py
-                StandardOutput=file:/tmp/telebot/output.log
-                StandardError=file:/tmp/telebot/error.log
+                ExecStart={{ python_dir }} {{ install_dir }}/{{ module_name }}/bot.py
+                Environment=TELEGRAM_TOKEN={{  TELEGRAM_TOKEN  }}
+                Environment=DATABASE_URL={{  DATABASE_URL  }}
+                StandardOutput=file:{{ log_path }}/{{ module_name }}/{{ stdout_filename }}
+                StandardError=file:{{ log_path }}/{{ module_name }}/{{ stderr_filename }}
                 [Install]
                 WantedBy=multi-user.target
                 
-      - name: Start telebot
+        #todo: check if it is restarted
+      - name: Start the bot.
         service:
-            name: telebot
-            state: started
-        environment:
-            TELEGRAM_TOKEN: 678687
-            DATABASE_URL: gioj
-            
-            
-       
+            name: "{{ module_name }}"
+            state: restarted
     
