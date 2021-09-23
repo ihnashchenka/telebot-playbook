@@ -8,6 +8,14 @@
         git:
             repo: https://github.com/ihnashchenka/TelegramBot.git
             dest: /usr/bin/telebot
+            force: yes
+            
+      - name: Set access bot sources
+        file:
+            path: /usr/bin/telebot
+            state: directory
+            mode: u=rwx,g=rx,o=rx
+            recurse: yes
           
       - name: Install libpq-dev to build libs for postgres
         apt:
@@ -27,6 +35,11 @@
         pip:
             requirements: /usr/bin/telebot/requirements.txt
             
+      - name: Create log directory
+        file:
+            path: "/tmp/telebot"
+            state: directory
+            
       - name: Create log files
         file:
             path: "{{ item }}"
@@ -34,5 +47,26 @@
         with_items:
         - /tmp/telebot/output.log
         - /tmp/telebot/error.log
+        
+      - name: Create telebot service file
+        copy:
+            dest: "/lib/systemd/system/telebot.service"
+            content: |
+                [Service]
+                ExecStart=/usr/bin/python3 /usr/bin/telebot/bot.py
+                StandardOutput=file:/tmp/telebot/output.log
+                StandardError=file:/tmp/telebot/error.log
+                [Install]
+                WantedBy=multi-user.target
+                
+      - name: Start telebot
+        service:
+            name: telebot
+            state: started
+        environment:
+            TELEGRAM_TOKEN: 678687
+            DATABASE_URL: gioj
+            
+            
        
     
