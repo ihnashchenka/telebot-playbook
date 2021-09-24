@@ -1,3 +1,16 @@
+# First steps in Ansible. Deploy TelegramBot GuessMu 3.0 on Ubuntu server
+
+## Backhistory
+
+## Objective
+Create a simple Ansible playbook aand run it from Windows host
+
+## Set up
+- Windows 10 Home Version 21H1
+- VirtualBox Version 6.1.14
+- Ubuntu Server 20.10 (64bit) virtual disk image from [osboxes](https://www.osboxes.org/)
+
+## Steps
 1) enable linux for win
 2) download ubuntu
 3) check ssh
