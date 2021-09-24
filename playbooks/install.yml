@@ -15,12 +15,12 @@
             force: yes
             
         #todo: possibly include to git task 
-      - name: Change access mode for bot sources.  
-        file:
-            path:  "{{ install_dir }}/{{ module_name }}"
-            state: directory
-            mode: u=rwx,g=rx,o=rx
-            recurse: yes
+    #  - name: Change access mode for bot sources.  
+    ##    file:
+    #        path:  "{{ install_dir }}/{{ module_name }}"
+    #        state: directory
+    #        mode: u=rwx,g=rx,o=rx
+    #        recurse: yes
           
       - name: Install libpq-dev to build libs for PostgreSQL.
         apt:
@@ -28,6 +28,7 @@
             update_cache: yes 
                 
       - name: Install pip.
+      
         apt:
             name: python3-pip
             update_cache: yes
