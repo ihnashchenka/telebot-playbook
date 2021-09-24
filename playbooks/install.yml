@@ -13,15 +13,7 @@
             repo: https://github.com/ihnashchenka/TelegramBot.git
             dest: "{{ install_dir }}/{{ module_name }}"
             force: yes
-            
-        #todo: possibly include to git task 
-    #  - name: Change access mode for bot sources.  
-    ##    file:
-    #        path:  "{{ install_dir }}/{{ module_name }}"
-    #        state: directory
-    #        mode: u=rwx,g=rx,o=rx
-    #        recurse: yes
-          
+   
       - name: Install libpq-dev to build libs for PostgreSQL.
         apt:
             name: libpq-dev
@@ -41,8 +33,20 @@
         file:
             path: "{{ log_path }}/{{ module_name }}"
             state: directory
-            
-        #todo: do cleanup with archiving to ...log.1
+        
+      - name: Archive previous log files.
+        copy:
+            dest: "{{ item }}.1"
+            src: "{{ item }}"
+            remote_src: yes
+        with_items:
+        - "{{ log_path }}/{{ module_name }}/{{ stdout_filename }}"
+        - "{{ log_path }}/{{ module_name }}/{{ stderr_filename }}"
+        #in case log files don't exist the step fails
+        #nothing to archive them in this case
+        #step can be ignored
+        ignore_errors: yes 
+        
       - name: Create log files.
         file:
             path: "{{ item }}"
@@ -56,7 +60,7 @@
             dest: "{{ service_dir }}/{{ module_name }}.service"
             content: |
                 [Service]
-                ExecStart={{ python_dir }} {{ install_dir }}/{{ module_name }}/bot.py
+                ExecStart={{ python_dir }} {{ install_dir }}/{{ module_name }}/bot.py polling
                 Environment=TELEGRAM_TOKEN={{  TELEGRAM_TOKEN  }}
                 Environment=DATABASE_URL={{  DATABASE_URL  }}
                 StandardOutput=file:{{ log_path }}/{{ module_name }}/{{ stdout_filename }}
@@ -64,7 +68,6 @@
                 [Install]
                 WantedBy=multi-user.target
                 
-        #todo: check if it is restarted
       - name: Start the bot.
         service:
             name: "{{ module_name }}"
