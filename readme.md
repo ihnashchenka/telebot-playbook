@@ -44,15 +44,19 @@ Usually Windows machine can't be used as a  Ansible host. However it is possible
 5. Check that ssh is availible on the host.
 6. Install Ansible `sudo apt-get install ansible`.
 
+Files from the Windows machine are visible from the command line. \
+Pathes are transformed in the following way: \
+`C:\\some\windows\path\file.txt` --> `/mnt/c/some/windows/path/file.txt`
+
 ### Target host
 
 7. Create a virtual machine with [Ubuntu Server 20.10](https://www.osboxes.org/ubuntu-server/#ubuntu-server-20-10-vbox).
 8. Configure ports forwarding on the virtual machine:
 
-| Name          |       |       | Comment                      |
-| ------------- |:-----:|:-----:|:----------------------------:|
-| SSH           | 2222  | 22    | Used by Ansible to connect to the VM |
-| HTTPS         | 2222  | 22    | Used to connect to the Telegram API  |
+| Name          |Host port    | Guest port      | Comment                              |
+| ------------- |:-----------:|:---------------:|:------------------------------------:|
+| SSH           | 2222        | 22              | Used by Ansible to connect to the VM |
+| HTTPS         | 4444        | 443             | Used to connect to the Telegram API  |
 
 9. Start the virtual mahine.
 
@@ -60,33 +64,36 @@ Once I created a virtual machine using the osboxes' .vdi file, it already have p
 `git --version` \
  `python --version` or `python3 --version` 
  
-10.  [Install open-ssh server](https://help.skytap.com/connect-to-a-linux-vm-with-ssh.html). 
+10.  [Install open-ssh server] on virtual machine(https://help.skytap.com/connect-to-a-linux-vm-with-ssh.html). 
 
-11. Test the connection between the ansible host and virtual machine. In Ubuntu terminal on Windows run: \
-`ssh 127.0.0.1:2222`
+11. Test the connection between the ansible host and virtual machine. In ansible host terminal on Windows run: \
+`ssh 127.0.0.1 -p 2222`
 
 Initially I have problem with `apt update' on the virtual machine. [Fix](https://stackoverflow.com/questions/64120030/hash-sum-mismatch-when-apt-get-update-ubuntu-20-04-vm-with-multipass) it before running the playbook.
 
 ### Run playbook
-10) specify user and pwd in inventory
-11) sudo apt-get install sshpass
-12) go to /mnt/c/
-13) run playbook
-/mnt/c/users/tanys/Desktop/Study/Ansible/telebot-playbook$ ansible-playbook -i inventory playbooks/helloworld.yml
 
-uk.archive.ubuntu.com 
+All actions should be done in the ansible host terminal.
 
+12. Clone this git repotitory.
+13. Clean *api_config.yml* file. Put there secret values in the following format: \
+`TELEGRAM_TOKEN:<your_bot_token>  
+DATABASE_URL:postgres://<user>:<password>@<db_host>:<port>/<db_name> `
+14. Navigate to `/transformed_path_to_cloned_repo/palybooks/vars`
+15. Run `sudo apt-get install sshpass`
+16. Encrypt *api_config.yml*: \
+`ansible-vault create api_config.yml` \
+It will ask to enter a password to encript the file. Remember it, it is used later on to run the playbook.
+17. Navigate to `/transfomed_path_to_cloned_repo/`
+18. Run the playbook: \
+`ansible-playbook -i inventory -K playbooks/install.yml --ask-vault-pass` \
+Enter the root user password. \ 
+Enter the vault password(the one used in point 16).
 
+**In case the playbook finished successfully, try to communicate with the bot via Telegram!**
 
-
-https://stackoverflow.com/questions/64120030/hash-sum-mismatch-when-apt-get-update-ubuntu-20-04-vm-with-multipass
-
-
-when a problem with pip install hash
-
+<span style="font-family:Papyrus; font-size:2em;">
+ https://stackoverflow.com/questions/64120030/hash-sum-mismatch-when-apt-get-update-ubuntu-20-04-vm-with-multipass
+Problem with pip install hash
 rm ~/.cache/pip -rf
-
-
-systemctl enable telebot
-systemctl start telebot
-systemctl status telebot
+</span>
